@@ -89,7 +89,7 @@ import org.opencv.imgproc.Imgproc;
    }
  */
 
-public final class Main {
+public final class ApplePi {
   private static String configFile = "/boot/frc.json";
 
   @SuppressWarnings("MemberName")
@@ -112,7 +112,7 @@ public final class Main {
   public static List<SwitchedCameraConfig> switchedCameraConfigs = new ArrayList<>();
   public static List<VideoSource> cameras = new ArrayList<>();
 
-  private Main() {
+  private ApplePi() {
   }
 
   /**
@@ -376,7 +376,7 @@ public final class Main {
       
 
       source1.putFrame(mat);
-      source2.putFrame(secondHSV);
+      source2.putFrame(secondHSV);  
       
       mat.release();
       hsv.release();
@@ -386,6 +386,7 @@ public final class Main {
       eroded.release();
       kernel.release();
       hierarchy.release();
+      secondHSV.release();
     }
   }
 
@@ -428,6 +429,7 @@ public final class Main {
               new MyPipeline(), pipeline -> {
         // do something with pipeline results
       });
+     
       /* something like this for GRIP:
       VisionThread visionThread = new VisionThread(cameras.get(0),
               new GripPipeline(), pipeline -> {
@@ -441,6 +443,7 @@ public final class Main {
     for (;;) {
       try {
         Thread.sleep(10000);
+        System.gc();
       } catch (InterruptedException ex) {
         return;
       }
