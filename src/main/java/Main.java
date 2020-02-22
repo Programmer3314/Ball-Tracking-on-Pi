@@ -89,7 +89,7 @@ import org.opencv.imgproc.Imgproc;
    }
  */
 
-public final class ApplePi {
+public final class Main {
   private static String configFile = "/boot/frc.json";
 
   @SuppressWarnings("MemberName")
@@ -112,7 +112,7 @@ public final class ApplePi {
   public static List<SwitchedCameraConfig> switchedCameraConfigs = new ArrayList<>();
   public static List<VideoSource> cameras = new ArrayList<>();
 
-  private ApplePi() {
+  private Main() {
   }
 
   /**
@@ -272,6 +272,8 @@ public final class ApplePi {
   public static MjpegServer startSwitchedCamera(SwitchedCameraConfig config) {
     System.out.println("Starting switched camera '" + config.name + "' on " + config.key);
     MjpegServer server = CameraServer.getInstance().addSwitchedCamera(config.name);
+    server.setCompression(75);
+    server.setResolution(320, 240);
 
     NetworkTableInstance.getDefault()
         .getEntry(config.key)
@@ -360,8 +362,8 @@ public final class ApplePi {
           if(r.area() > maxArea){
               maxArea = r.area();
               indexAtMax = i;
-              centerX = ((r.x - 320) + (r.width/2));
-              centerY = ((r.y-240) + (r.height/2));
+              centerX = ((r.x - mat.width()/2) + (r.width/2)) + 0.5;
+              centerY = ((r.y-mat.height()/2) + (r.height/2)) + 0.5;
           }
          
       }
@@ -369,6 +371,7 @@ public final class ApplePi {
         table.getEntry("x").setNumber(centerX);
         table.getEntry("y").setNumber(centerY);
         table.getEntry("Target Found").setBoolean(true);
+        table.getEntry("X Angle").setNumber(pixelToAngle(mat.width(), 70.42, centerX));
       }else{
         table.getEntry("Target Found").setBoolean(false);
       }
@@ -387,6 +390,19 @@ public final class ApplePi {
       kernel.release();
       hierarchy.release();
       secondHSV.release();
+    }
+    public double pixelToAngle(double camWidth, double camFOV, double xPosition){
+      double f = (0.5 * camWidth) / Math.tan(0.5 * (camFOV * Math.PI / 180.0));
+      
+      double pixelX = xPosition;
+      
+      double dot = (f * f);
+      double alpha = Math.acos(dot / (f * (Math.sqrt(pixelX * pixelX + f * f))));
+
+      if(xPosition < 0)
+        alpha *= -1;
+      
+      return (alpha * 180.0/Math.PI);
     }
   }
 
